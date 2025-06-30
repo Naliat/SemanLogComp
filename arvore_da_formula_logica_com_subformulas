@@ -1,0 +1,21 @@
+// Árvore Sintática Lógica
+digraph {
+	nodesep=0.6 rankdir=TB ranksep=0.8 splines=polyline
+	0 [label=AND shape=box]
+	1 [label=p shape=ellipse]
+	0 -> 1
+	2 [label=IMPLICA shape=box]
+	3 [label=p shape=ellipse]
+	2 -> 3
+	4 [label=NEG shape=box]
+	5 [label=q shape=ellipse]
+	4 -> 5
+	2 -> 4
+	0 -> 2
+	subformulas_block [label="Subfórmulas:
+p
+q
+~q
+(p -> ~q)
+p & ((p -> ~q))" fillcolor=lightgray fontname=monospace fontsize=10 peripheries=1 shape=box style=filled]
+}
