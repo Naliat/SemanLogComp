@@ -1,12 +1,12 @@
 import re
 import csv
+import os
 from sympy.logic.boolalg import Implies, And, Or, Not, Equivalent
 from sympy.abc import symbols
 from itertools import product
 from sympy import sympify
 from datetime import datetime
 
-# Regex para átomos lógicos
 _ATOM_PATTERN = r'[a-zA-Z_]+|True|False|\([^()]*?\)'
 
 def _parse_and_evaluate_expression(formula_str_input, env):
@@ -48,14 +48,15 @@ def classify_formula(formula_str_input):
                 table_data_rows.append(row_values)
                 final_column_values.append(bool(result))
 
-        # --- Formatação da tabela em Markdown ---
-        table_string = "\n--- Tabela Verdade (Markdown) ---\n\n"
-        table_string += "| " + " | ".join(header_parts) + " |\n"
-        table_string += "| " + " | ".join(["---"] * len(header_parts)) + " |\n"
+        # Formatação da tabela em Markdown
+        table_lines = []
+        table_lines.append("| " + " | ".join(header_parts) + " |")
+        table_lines.append("| " + " | ".join(["---"] * len(header_parts)) + " |")
         for row in table_data_rows:
-            table_string += "| " + " | ".join('V' if val else 'F' for val in row) + " |\n"
+            table_lines.append("| " + " | ".join('V' if val else 'F' for val in row) + " |")
+        table_markdown = "\n".join(table_lines)
 
-        # --- Classificação ---
+        # Classificação
         all_true = all(final_column_values)
         all_false = not any(final_column_values)
 
@@ -69,18 +70,22 @@ def classify_formula(formula_str_input):
             classification = "Satisfazível, Inválida"
             justification = f"A fórmula '{formula_str_input}' é **satisfazível** (pode ser verdadeira), mas **não é válida** (pode ser falsa)."
 
-        # --- Salvamento no CSV ---
-        now = datetime.now()
-        with open("tabelas_verdade.csv", mode="a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow([now.strftime("%Y-%m-%d %H:%M:%S"), formula_str_input, classification])
+        # Verifica se o arquivo existe e se está vazio para escrever cabeçalho
+        filename = "tabelas_verdade.csv"
+        file_exists = os.path.isfile(filename)
+        write_header = not file_exists or os.path.getsize(filename) == 0
 
-        return classification, justification, table_string
+        with open(filename, mode="a", encoding="utf-8", newline='') as f:
+            writer = csv.writer(f)
+            if write_header:
+                writer.writerow(["Data/Hora", "Fórmula", "Classificação", "Justificativa", "Tabela Verdade Markdown"])
+            writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), formula_str_input, classification, justification, table_markdown])
+
+        return classification, justification, table_markdown
 
     except Exception as e:
         return "Erro", f"Erro ao processar a fórmula: {e}", ""
 
-# --- Loop interativo ---
 if __name__ == "__main__":
     print("Bem-vindo ao Classificador de Fórmulas Lógicas com Tabela Verdade!")
     print("\nOperadores suportados:")
@@ -98,6 +103,6 @@ if __name__ == "__main__":
             break
 
         classification, justification, truth_table_str = classify_formula(formula_input)
-        print(truth_table_str)
+        print("\n" + truth_table_str)
         print(f"\nClassificação: {classification}")
         print(f"Justificativa: {justification}")

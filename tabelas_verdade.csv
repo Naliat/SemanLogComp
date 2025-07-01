@@ -1,1 +1,7 @@
-2025-06-30 22:19:18,((p -> q) -> p) -> p,Válida
+Data/Hora,Fórmula,Classificação,Justificativa,Tabela Verdade Markdown
+2025-06-30 22:21:05,((p -> q) -> p) -> p,Válida,A fórmula '((p -> q) -> p) -> p' é uma **tautologia** (sempre verdadeira).,"| p | q | ((p -> q) -> p) -> p |
+| --- | --- | --- |
+| F | F | V |
+| F | V | V |
+| V | F | V |
+| V | V | V |"
