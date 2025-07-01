@@ -1,0 +1,9 @@
+Fórmula,Classificação,Justificativa,Tabela Verdade
+((p -> q) -> p) -> p,Válida,A fórmula '((p -> q) -> p) -> p' é uma **tautologia** (sempre verdadeira).,"--- Tabela Verdade ---
+p | q | ((p -> q) -> p) -> p
+--+---+---------------------
+F | F | V                   
+F | V | V                   
+V | F | V                   
+V | V | V                   
+----------------------------"
