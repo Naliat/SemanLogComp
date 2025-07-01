@@ -210,11 +210,11 @@ def generate_ast_image(ast_root, filename="arvore_logica"):
             label = node.value # Para variáveis
 
         # Substituir símbolos para melhor visualização no Graphviz
-        if label == 'AND': label = 'AND' # Já é AND
-        elif label == 'OR': label = 'OR' # Já é OR
-        elif label == 'IMPLIES': label = 'IMPLICA'
-        elif label == 'IFF': label = 'BICONDICIONAL'
-        elif label == 'NOT': label = 'NEG'
+        if label == 'AND': label = '^' # Já é AND
+        elif label == 'OR': label = 'v' # Já é OR
+        elif label == 'IMPLIES': label = '-->'
+        elif label == 'IFF': label = '<-->'
+        elif label == 'NOT': label = '~'
         elif label == 'NOR': label = 'NOR'
         elif label == 'NAND': label = 'NAND'
 
