@@ -1,11 +1,10 @@
 import re
-import csv
-import os
 from sympy.logic.boolalg import Implies, And, Or, Not, Equivalent
 from sympy.abc import symbols
 from itertools import product
 from sympy import sympify
 from datetime import datetime
+import os
 
 _ATOM_PATTERN = r'[a-zA-Z_]+|True|False|\([^()]*?\)'
 
@@ -48,15 +47,6 @@ def classify_formula(formula_str_input):
                 table_data_rows.append(row_values)
                 final_column_values.append(bool(result))
 
-        # Formatação da tabela em Markdown
-        table_lines = []
-        table_lines.append("| " + " | ".join(header_parts) + " |")
-        table_lines.append("| " + " | ".join(["---"] * len(header_parts)) + " |")
-        for row in table_data_rows:
-            table_lines.append("| " + " | ".join('V' if val else 'F' for val in row) + " |")
-        table_markdown = "\n".join(table_lines)
-
-        # Classificação
         all_true = all(final_column_values)
         all_false = not any(final_column_values)
 
@@ -70,18 +60,30 @@ def classify_formula(formula_str_input):
             classification = "Satisfazível, Inválida"
             justification = f"A fórmula '{formula_str_input}' é **satisfazível** (pode ser verdadeira), mas **não é válida** (pode ser falsa)."
 
-        # Verifica se o arquivo existe e se está vazio para escrever cabeçalho
-        filename = "tabelas_verdade.csv"
-        file_exists = os.path.isfile(filename)
-        write_header = not file_exists or os.path.getsize(filename) == 0
+        filename = "tabelas_verdade.md"
+        # Checa se arquivo existe para não apagar conteúdo antigo
+        write_header = not os.path.isfile(filename)
 
-        with open(filename, mode="a", encoding="utf-8", newline='') as f:
-            writer = csv.writer(f)
+        with open(filename, "a", encoding="utf-8") as f:
             if write_header:
-                writer.writerow(["Data/Hora", "Fórmula", "Classificação", "Justificativa", "Tabela Verdade Markdown"])
-            writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), formula_str_input, classification, justification, table_markdown])
+                f.write("# Tabelas Verdade de Fórmulas Lógicas\n\n")
 
-        return classification, justification, table_markdown
+            f.write(f"## Classificação da fórmula: {formula_str_input}\n\n")
+            f.write(f"**Data:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  \n")
+            f.write(f"**Classificação:** {classification}  \n")
+            f.write(f"**Justificativa:** {justification}\n\n")
+
+            # Monta o header da tabela markdown
+            f.write("| " + " | ".join(header_parts) + " |\n")
+            f.write("|" + "|".join("---" for _ in header_parts) + "|\n")
+
+            # Monta as linhas da tabela com V/F
+            for row in table_data_rows:
+                f.write("| " + " | ".join('V' if val else 'F' for val in row) + " |\n")
+
+            f.write("\n---\n\n")  # Separador entre entradas
+
+        return classification, justification, None
 
     except Exception as e:
         return "Erro", f"Erro ao processar a fórmula: {e}", ""
@@ -102,7 +104,7 @@ if __name__ == "__main__":
         if formula_input.lower() == 'sair':
             break
 
-        classification, justification, truth_table_str = classify_formula(formula_input)
-        print("\n" + truth_table_str)
+        classification, justification, _ = classify_formula(formula_input)
         print(f"\nClassificação: {classification}")
         print(f"Justificativa: {justification}")
+        print(f"Tabela verdade salva no arquivo 'tabelas_verdade.md'")
