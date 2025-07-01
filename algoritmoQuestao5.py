@@ -1,10 +1,10 @@
 import re
-import os
 import csv
 from sympy.logic.boolalg import Implies, And, Or, Not, Equivalent
 from sympy.abc import symbols
 from itertools import product
 from sympy import sympify
+from datetime import datetime
 
 # Regex para átomos lógicos
 _ATOM_PATTERN = r'[a-zA-Z_]+|True|False|\([^()]*?\)'
@@ -31,8 +31,6 @@ def classify_formula(formula_str_input):
 
         formula_expr = _parse_and_evaluate_expression(formula_str_input, env)
 
-        # --- Tabela Verdade ---
-        table_string = "\n--- Tabela Verdade ---\n"
         header_parts = [str(v) for v in variables] + [formula_str_input]
         table_data_rows = []
         final_column_values = []
@@ -50,44 +48,37 @@ def classify_formula(formula_str_input):
                 table_data_rows.append(row_values)
                 final_column_values.append(bool(result))
 
-        # --- Formatação ---
-        col_widths = [len(h) for h in header_parts]
+        # --- Formatação da tabela em Markdown ---
+        table_string = "\n--- Tabela Verdade (Markdown) ---\n\n"
+        table_string += "| " + " | ".join(header_parts) + " |\n"
+        table_string += "| " + " | ".join(["---"] * len(header_parts)) + " |\n"
         for row in table_data_rows:
-            for i, val in enumerate(row):
-                col_widths[i] = max(col_widths[i], len('V' if val else 'F'))
-
-        header_line = " | ".join(h.ljust(w) for h, w in zip(header_parts, col_widths))
-        table_string += header_line + "\n"
-        table_string += "-+-".join("-" * w for w in col_widths) + "\n"
-
-        for row in table_data_rows:
-            table_string += " | ".join(('V' if val else 'F').ljust(col_widths[i]) for i, val in enumerate(row)) + "\n"
-        table_string += "-" * (sum(col_widths) + 3 * (len(col_widths) - 1)) + "\n"
+            table_string += "| " + " | ".join('V' if val else 'F' for val in row) + " |\n"
 
         # --- Classificação ---
         all_true = all(final_column_values)
         all_false = not any(final_column_values)
 
         if all_true:
-            return "Válida", f"A fórmula '{formula_str_input}' é uma **tautologia** (sempre verdadeira).", table_string
+            classification = "Válida"
+            justification = f"A fórmula '{formula_str_input}' é uma **tautologia** (sempre verdadeira)."
         elif all_false:
-            return "Insatisfazível", f"A fórmula '{formula_str_input}' é uma **contradição** (sempre falsa).", table_string
+            classification = "Insatisfazível"
+            justification = f"A fórmula '{formula_str_input}' é uma **contradição** (sempre falsa)."
         else:
-            return "Satisfazível, Inválida", f"A fórmula '{formula_str_input}' é **satisfazível** (pode ser verdadeira), mas **não é válida** (pode ser falsa).", table_string
+            classification = "Satisfazível, Inválida"
+            justification = f"A fórmula '{formula_str_input}' é **satisfazível** (pode ser verdadeira), mas **não é válida** (pode ser falsa)."
+
+        # --- Salvamento no CSV ---
+        now = datetime.now()
+        with open("tabelas_verdade.csv", mode="a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow([now.strftime("%Y-%m-%d %H:%M:%S"), formula_str_input, classification])
+
+        return classification, justification, table_string
 
     except Exception as e:
         return "Erro", f"Erro ao processar a fórmula: {e}", ""
-
-def salvar_em_csv(formula, classificacao, justificativa, tabela_verdade):
-    caminho_arquivo = "formulas_resultados.csv"
-    criar_cabecalho = not os.path.exists(caminho_arquivo)
-
-    with open(caminho_arquivo, mode='a', newline='', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
-        if criar_cabecalho:
-            writer.writerow(['Fórmula', 'Classificação', 'Justificativa', 'Tabela Verdade'])
-
-        writer.writerow([formula, classificacao, justificativa, tabela_verdade.strip()])
 
 # --- Loop interativo ---
 if __name__ == "__main__":
@@ -106,10 +97,7 @@ if __name__ == "__main__":
         if formula_input.lower() == 'sair':
             break
 
-        classificacao, justificativa, tabela = classify_formula(formula_input)
-        print(tabela)
-        print(f"Classificação: {classificacao}")
-        print(f"Justificativa: {justificativa}\n")
-
-        salvar_em_csv(formula_input, classificacao, justificativa, tabela)
-        print("Resultado salvo em 'formulas_resultados.csv'.\n")
+        classification, justification, truth_table_str = classify_formula(formula_input)
+        print(truth_table_str)
+        print(f"\nClassificação: {classification}")
+        print(f"Justificativa: {justification}")
