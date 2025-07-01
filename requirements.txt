@@ -1,2 +1,4 @@
 graphviz==0.21
+mpmath==1.3.0
 ply==3.11
+sympy==1.14.0
