@@ -5,7 +5,7 @@
 **Data:** 2025-06-30 22:36:46  
 **Classificação:** Válida  
 **Justificativa:** A fórmula '((p -> q) -> p) -> p' é uma **tautologia** (sempre verdadeira).
-
+```
 | p | q | ((p -> q) -> p) -> p |
 |---|---|---|
 | F | F | V |
@@ -127,4 +127,5 @@
 | V | V | V |
 
 ---
+```
 
